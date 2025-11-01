@@ -42,6 +42,7 @@ We can describe Coroutines in Python as non-blocking functions, so, a function t
 > In Python, asyncio is not about running multiple tasks in multiple threads; it is about running multiple tasks in a single thread, i.e., executing them with greater efficiency.
 
 In Python, we can express this by:
+
 ```py
 # sub-routine
 def sub_task():
@@ -58,14 +59,15 @@ And to manage to run all of our async_task in parallel, there is a method in asy
 
 ### CPU-Bound vs I/O-Bound
 
-In the programming functions, there are basically two types of function operations, the CPU-Bound, which is basically any function that requires intensive cpu power, and IO-Bound, functions that does not require intensive cpu work, but instead, needs to wait for another task to complete. 
+In the programming functions, there are basically two types of function operations, the CPU-Bound, which is basically any function that requires intensive cpu power, and IO-Bound, functions that does not require intensive cpu work, but instead, needs to wait for another task to complete.
 
 So, IO-Bound functions are basically functions that are lightweight but may wait long due to the need for another service:
+
 ```py
 response = requests.get("another_service_endpoint") # IO-Bound operation
 ```
 
-The question is, for the CPU-Bound operation, is not as necessary to have a parallel run, since the task itself will require most of the power available. But with IO-Bound operations, the panorama is very different, since most of the runtime, the thread will be sub-used, which means that the cpu will have a lot of power available, the problem, is that if the function is a sub-routine, it will block the thread, so we need to made the function available for parallel run, with async, and with this will be able to to run a lot of IO-Bound operations at same time, saving a tom of time since we do not need to wait for every long io-bound operation to in queue 
+The question is, for the CPU-Bound operation, is not as necessary to have a parallel run, since the task itself will require most of the power available. But with IO-Bound operations, the panorama is very different, since most of the runtime, the thread will be sub-used, which means that the cpu will have a lot of power available, the problem, is that if the function is a sub-routine, it will block the thread, so we need to made the function available for parallel run, with async, and with this will be able to to run a lot of IO-Bound operations at same time, saving a tom of time since we do not need to wait for every long io-bound operation to in queue
 
 ## Gather()
 
@@ -79,7 +81,7 @@ async def async_task():
 await async_task()
 await async_task()
 await async_task()
-# this code will last 9 seconds 
+# this code will last 9 seconds
 ```
 
 The code will last as same as:
@@ -94,6 +96,7 @@ sub_task()
 sub_task()
 # this code will last 9 seconds
 ```
+
 because of sequential run, even though the the async_task being a sub-routine, since we run the task in a sequential way, i.e, one at time, its provides the same behavior of a sub-routine.
 
 To resolve this, the asyncio lib implements a method called gather(), a method that takes an array of coroutines, and run all of then at same time, basically, there are just a few steps to implement this parallel structure.
@@ -105,27 +108,27 @@ To resolve this, the asyncio lib implements a method called gather(), a method t
 
 > Notice that to store a coroutines without running it, you just need to call the function with "()" without await
 >
->```Python
-># intead of using await async_method(), just use async_method()
->async def async_method():
+> ```Python
+> # intead of using await async_method(), just use async_method()
+> async def async_method():
 >    await asyncio.sleep(3)
 >
->coroutines = []
->for _ in range(3):
->    coroutine = async_method()  
+> coroutines = []
+> for _ in range(3):
+>    coroutine = async_method()
 >    coroutines.append(coroutine)
->```
+> ```
 
 If that in mind, lets go to examples:
 
 > A few months ago, I built a service to generate random passwords, so that I implemented the parallel logics inside it, you can check the password use case in this [repo file](https://github.com/gabszs/FastApi--Password-Generator/blob/main/app/use_cases/password.py). For the example, lets assume that we already have the class.
 
 ```py
-""" 
-So, we have a class that the method returns a password, 
+"""
+So, we have a class that the method returns a password,
 but instead of call every run sequentially,
-- we build the coroutines without await 
-- stores into a list 
+- we build the coroutines without await
+- stores into a list
 - and later run inside gather
 """
 pg = PasswordGenerator() # -> Instantiate the password use case class
@@ -134,8 +137,8 @@ corroutines = list() # -> create a list to store the coros
 for number in range(quantity): # creates a loop by quantity to build our coros
 
     # notice, that I do not use await
-    coro = pg.async_pin(pin_lenght=password_lenght) 
-    coroutines.append(coro) 
+    coro = pg.async_pin(pin_lenght=password_lenght)
+    coroutines.append(coro)
 
 # unpackage the coros inside gather, and then run all the coroutines in parallel
 gather_result = await gather(*coroutines)

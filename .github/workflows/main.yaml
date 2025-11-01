@@ -2,10 +2,10 @@ name: Production CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
-    IMAGE_NAME: gabzsz/portfolio-web
+  IMAGE_NAME: gabzsz/portfolio-web
 
 jobs:
   build:

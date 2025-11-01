@@ -3,12 +3,11 @@ layout: ../layouts/AboutLayout.astro
 title: "About"
 ---
 
-
-
-Hello! I'm Gabriel Carvalho, 
+Hello! I'm Gabriel Carvalho,
 a back-end developer with experience in building and automating complex processes. I specialize in Python and C#, but my enthusiasm for DevOps has driven me to create my own homelab to host applications.
 
 Here I talk about topics such as:
+
 - Homelabbing
 - Advanced Python features and tips, such as asyncio and async programming
 - DevOps automation (I’m also a huge fan of GitOps and CI/CD pipelines)
@@ -18,7 +17,7 @@ Here I talk about topics such as:
 - Professional tips
 - Communication and life hacks
 
-I currently work as an software engineer at Huawei, where I've developed internal tools and automations for processes like payment systems and employee management, saving over $50K through efficient solutions. 
+I currently work as an software engineer at Huawei, where I've developed internal tools and automations for processes like payment systems and employee management, saving over $50K through efficient solutions.
 
 I'm dedicated to continuous improvement, effective communication (with a focus on NLP), and aligning with company values. I'm always looking to expand my skills and contribute to innovative projects.
 

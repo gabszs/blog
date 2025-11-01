@@ -13,12 +13,17 @@
     --color-border: 236, 233, 233;
   }
   html[data-theme="dark"] {
-    --color-fill: 30, 30, 40; /* Um fundo escuro, quase preto, mas com um toque de azul */
-    --color-text-base: 220, 220, 220; /* Um cinza claro, quase branco, para melhorar a legibilidade */
-    --color-accent: 255, 87, 34; /* Um laranja vibrante para links e elementos de destaque */
+    --color-fill:
+      30, 30, 40; /* Um fundo escuro, quase preto, mas com um toque de azul */
+    --color-text-base:
+      220, 220, 220; /* Um cinza claro, quase branco, para melhorar a legibilidade */
+    --color-accent:
+      255, 87, 34; /* Um laranja vibrante para links e elementos de destaque */
     --color-card: 50, 60, 80; /* Azul-escuro suave para o fundo dos cartões */
-    --color-card-muted: 70, 80, 100; /* Um tom cinza-azulado para estados de hover em cartões */
-    --color-border: 100, 100, 120; /* Um cinza médio para bordas, adicionando definição */
+    --color-card-muted:
+      70, 80, 100; /* Um tom cinza-azulado para estados de hover em cartões */
+    --color-border:
+      100, 100, 120; /* Um cinza médio para bordas, adicionando definição */
   }
   #sun-svg,
   html[data-theme="dark"] #moon-svg {

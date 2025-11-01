@@ -1,0 +1,16 @@
+---
+import Layout from "@layouts/Layout.astro";
+import DebugRedirect from "@components/DebugRedirect";
+---
+
+<Layout title="Debug Redirect">
+  <main id="main-content">
+    <DebugRedirect client:load />
+  </main>
+</Layout>
+
+<style>
+  #main-content {
+    @apply mx-auto flex max-w-7xl flex-1 flex-col px-4;
+  }
+</style>
