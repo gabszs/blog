@@ -1,12 +1,17 @@
 ---
+import { SITE } from "@config";
 import Layout from "@layouts/Layout.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
 import DebugRedirect from "@components/DebugRedirect";
 ---
 
-<Layout title="Debug Redirect">
+<Layout title={`Debug Redirect | ${SITE.title}`}>
+  <Header />
   <main id="main-content">
     <DebugRedirect client:load />
   </main>
+  <Footer />
 </Layout>
 
 <style>
