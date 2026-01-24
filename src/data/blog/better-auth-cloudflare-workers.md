@@ -42,36 +42,36 @@ The interesting part is that it works through **plugins**. Want admin? Add `admi
 
 ## Stack
 
-| Peça | O que faz |
-|------|-----------|
-| **Hono** | Framework web. Rápido, leve, roda em qualquer lugar |
-| **Better Auth** | O framework de auth. Modular, type-safe |
-| **Drizzle** | ORM. Gera queries SQL sem magia negra |
-| **D1** | SQLite do Cloudflare. Serverless, na edge |
-| **better-auth-cloudflare** | Cola tudo junto com os bindings do CF |
+| Component | Purpose |
+|-----------|---------|
+| **Hono** | Web framework. Fast, lightweight, runs anywhere |
+| **Better Auth** | Auth framework. Modular, type-safe |
+| **Drizzle** | ORM. Generates SQL queries without black magic |
+| **D1** | Cloudflare's SQLite. Serverless, at the edge |
+| **better-auth-cloudflare** | Glues everything together with CF bindings |
 
 ---
 
-## Setup inicial
+## Initial setup
 
-Primeiro, as dependências:
+First, the dependencies:
 
 ```bash
-pnpm create hono  # selecione cloudflare-workers
+pnpm create hono  # select cloudflare-workers
 pnpm add better-auth better-auth-cloudflare
 pnpm add drizzle-orm
 pnpm add -D drizzle-kit
-pnpm add resend  # para emails
+pnpm add resend  # for emails
 ```
 
-### Variáveis de ambiente
+### Environment variables
 
-Crie um `.dev.vars` na raiz:
+Create a `.dev.vars` at the root:
 
 ```env
-BETTER_AUTH_SECRET=uma-string-longa-e-aleatoria-aqui
+BETTER_AUTH_SECRET=a-long-random-string-here
 
-# OAuth (opcional)
+# OAuth (optional)
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GITHUB_CLIENT_ID=
@@ -84,11 +84,11 @@ RESEND_API_KEY=
 CORS_ORIGIN=http://localhost:3000,http://localhost:3001
 ```
 
-O `BETTER_AUTH_SECRET` é usado para assinar tokens e cookies. **Nunca commite isso no repo.**
+The `BETTER_AUTH_SECRET` is used to sign tokens and cookies. **Never commit this to the repo.**
 
-### Tipos do Cloudflare
+### Cloudflare types
 
-Rode `pnpm wrangler types` para gerar os tipos dos bindings. Seu `tsconfig.json` precisa incluir:
+Run `pnpm wrangler types` to generate binding types. Your `tsconfig.json` needs to include:
 
 ```json
 {
@@ -100,7 +100,7 @@ Rode `pnpm wrangler types` para gerar os tipos dos bindings. Seu `tsconfig.json`
 
 ### Drizzle config
 
-O Drizzle precisa saber onde está o banco. Em dev, o Wrangler cria um `.sqlite` dentro de `.wrangler/`. Em prod, usa o D1 via HTTP.
+Drizzle needs to know where the database is. In dev, Wrangler creates a `.sqlite` file inside `.wrangler/`. In prod, it uses D1 via HTTP.
 
 ```ts
 // drizzle.config.ts
@@ -148,9 +148,9 @@ export default defineConfig({
 
 ---
 
-## A configuração mínima
+## The minimal configuration
 
-Se você só quer email/password funcionando, o setup é bem direto:
+If you just want email/password working, the setup is straightforward:
 
 ```ts
 // src/lib/auth.ts
@@ -184,13 +184,13 @@ export function getAuthInstance(env: CloudflareBindings) {
 export { createAuth };
 ```
 
-Pronto. Isso já te dá `/api/auth/sign-in`, `/api/auth/sign-up`, `/api/auth/sign-out`, e validação de sessão.
+Done. This already gives you `/api/auth/sign-in`, `/api/auth/sign-up`, `/api/auth/sign-out`, and session validation.
 
 ---
 
-## A configuração completa (com os plugins interessantes)
+## The complete configuration (with the interesting plugins)
 
-Aqui é onde a coisa fica divertida. O `better-auth-cloudflare` adiciona integrações nativas com D1, KV e R2. Combinado com os plugins oficiais, você consegue um sistema de auth bem robusto.
+This is where things get fun. The `better-auth-cloudflare` package adds native integrations with D1, KV and R2. Combined with the official plugins, you get a pretty robust auth system.
 
 ```ts
 // src/lib/auth.ts
@@ -232,10 +232,10 @@ function createAuth(env: CloudflareBindings, cf?: IncomingRequestCfProperties) {
           sendResetPassword: async ({ user, url }) => {
             const resend = new Resend(env.RESEND_API_KEY);
             await resend.emails.send({
-              from: "App <noreply@seudominio.com>",
+              from: "App <noreply@yourdomain.com>",
               to: user.email,
               subject: "Reset your password",
-              html: `<p>Clique <a href="${url}">aqui</a> para resetar sua senha.</p>`,
+              html: `<p>Click <a href="${url}">here</a> to reset your password.</p>`,
             });
           },
         },
@@ -243,10 +243,10 @@ function createAuth(env: CloudflareBindings, cf?: IncomingRequestCfProperties) {
           sendVerificationEmail: async ({ user, url }) => {
             const resend = new Resend(env.RESEND_API_KEY);
             await resend.emails.send({
-              from: "App <noreply@seudominio.com>",
+              from: "App <noreply@yourdomain.com>",
               to: user.email,
               subject: "Verify your email",
-              html: `<p>Clique <a href="${url}">aqui</a> para verificar seu email.</p>`,
+              html: `<p>Click <a href="${url}">here</a> to verify your email.</p>`,
             });
           },
           sendOnSignUp: true,
@@ -261,10 +261,10 @@ function createAuth(env: CloudflareBindings, cf?: IncomingRequestCfProperties) {
               if (type === "sign-in") {
                 const resend = new Resend(env.RESEND_API_KEY);
                 await resend.emails.send({
-                  from: "App <noreply@seudominio.com>",
+                  from: "App <noreply@yourdomain.com>",
                   to: email,
                   subject: "Your verification code",
-                  html: `<p>Seu código: <strong>${otp}</strong></p>`,
+                  html: `<p>Your code: <strong>${otp}</strong></p>`,
                 });
               }
             },
@@ -303,19 +303,19 @@ export { createAuth };
 
 ---
 
-## Os plugins que valem a pena
+## Plugins worth using
 
 ### openAPI()
 
-Gera documentação OpenAPI de todas as rotas de auth. Acesse `/api/auth/reference` e você tem uma UI interativa para testar tudo.
+Generates OpenAPI documentation for all auth routes. Access `/api/auth/reference` and you get an interactive UI to test everything.
 
-Tem um exemplo rodando aqui: [template-hono-workers-api.gabszs.workers.dev/api/auth/reference](https://template-hono-workers-api.gabszs.workers.dev/api/auth/reference)
+There's a live example here: [template-hono-workers-api.gabszs.workers.dev/api/auth/reference](https://template-hono-workers-api.gabszs.workers.dev/api/auth/reference)
 
 ### admin()
 
-Adiciona gerenciamento de usuários: listar, banir, impersonar sessões, gerenciar roles.
+Adds user management: listing, banning, session impersonation, role management.
 
-**Campos adicionados:**
+**Added fields:**
 
 - `users.role`
 - `users.banned`
@@ -325,27 +325,27 @@ Adiciona gerenciamento de usuários: listar, banir, impersonar sessões, gerenci
 
 ### phoneNumber()
 
-Adiciona `users.phoneNumber` e `users.phoneNumberVerified`. Permite login via SMS/WhatsApp.
+Adds `users.phoneNumber` and `users.phoneNumberVerified`. Enables login via SMS/WhatsApp.
 
 ### emailOTP()
 
-Alternativa ao magic link. Usuário recebe código de 6 dígitos por email ao invés de um link.
+Alternative to magic link. User receives a 6-digit code by email instead of a link.
 
-### withCloudflare() - esse é o importante
+### withCloudflare() - this is the important one
 
-O pacote [better-auth-cloudflare](https://github.com/zpg6/better-auth-cloudflare) é o que faz a integração com Cloudflare valer a pena.
+The [better-auth-cloudflare](https://github.com/zpg6/better-auth-cloudflare) package is what makes the Cloudflare integration worthwhile.
 
-**KV como cache de sessões:**
+**KV as session cache:**
 
-Essa é a feature mais impactante. Verificar sessão no D1 em cold start leva ~800ms-1s. Com KV, cai para ~12-20ms. A diferença é absurda em aplicações com muitas requests autenticadas.
+This is the most impactful feature. Verifying sessions on D1 during cold start takes ~800ms-1s. With KV, it drops to ~12-20ms. The difference is massive in applications with lots of authenticated requests.
 
-**R2 para uploads:**
+**R2 for uploads:**
 
-Cria rotas automáticas para upload de arquivos por usuário. Você configura tamanho máximo e tipos permitidos, e cada arquivo fica associado ao usuário logado.
+Creates automatic routes for per-user file uploads. You configure max file size and allowed types, and each file gets associated with the logged-in user.
 
-**Geolocalização nas sessions:**
+**Geolocation on sessions:**
 
-Adiciona automaticamente:
+Automatically adds:
 
 - `timezone`
 - `city`
@@ -356,13 +356,13 @@ Adiciona automaticamente:
 - `latitude`
 - `longitude`
 
-Você consegue saber de onde seus usuários estão logando sem fazer nada.
+You can see where your users are logging in from without doing anything.
 
 ---
 
-## OAuth: Google e GitHub
+## OAuth: Google and GitHub
 
-Configurar OAuth é só passar as credenciais:
+Configuring OAuth is just passing the credentials:
 
 ```ts
 socialProviders: {
@@ -377,15 +377,15 @@ socialProviders: {
 },
 ```
 
-Para pegar as credenciais:
+To get the credentials:
 
 1. **Google:** [console.cloud.google.com](https://console.cloud.google.com/) → APIs & Services → Credentials → OAuth 2.0 Client ID
-   - Redirect URI: `https://seu-dominio.com/api/auth/callback/google`
+   - Redirect URI: `https://your-domain.com/api/auth/callback/google`
 
 2. **GitHub:** [github.com/settings/developers](https://github.com/settings/developers) → OAuth Apps → New
-   - Callback URL: `https://seu-dominio.com/api/auth/callback/github`
+   - Callback URL: `https://your-domain.com/api/auth/callback/github`
 
-O Better Auth gera as rotas automaticamente:
+Better Auth generates the routes automatically:
 
 - `/api/auth/sign-in/google`
 - `/api/auth/sign-in/github`
@@ -394,9 +394,9 @@ O Better Auth gera as rotas automaticamente:
 
 ---
 
-## O schema gerado
+## The generated schema
 
-O CLI do Better Auth gera o schema Drizzle automaticamente. Depois de rodar `pnpm auth:generate`, você terá algo assim:
+The Better Auth CLI generates the Drizzle schema automatically. After running `pnpm auth:generate`, you'll have something like this:
 
 ```ts
 // src/db/authModels.ts
@@ -443,7 +443,7 @@ export const sessions = sqliteTable("sessions", {
 
 ---
 
-## Montando o handler no Hono
+## Setting up the Hono handler
 
 ```ts
 // src/index.ts
@@ -487,7 +487,7 @@ export default app;
 
 ---
 
-## Protegendo rotas
+## Protecting routes
 
 ```ts
 // src/lib/middleware.ts
@@ -507,7 +507,7 @@ export const authMiddleware = createMiddleware(async (c, next) => {
 });
 ```
 
-Uso:
+Usage:
 
 ```ts
 import { Hono } from "hono";
@@ -515,10 +515,10 @@ import { authMiddleware } from "./lib/middleware";
 
 const app = new Hono();
 
-// Rotas públicas
+// Public routes
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-// Rotas protegidas
+// Protected routes
 app.use("/api/*", authMiddleware);
 
 app.get("/api/me", (c) => {
@@ -529,27 +529,27 @@ app.get("/api/me", (c) => {
 
 ---
 
-## Gerando o frontend com IA
+## Generating the frontend with AI
 
-O plugin `openAPI()` gera uma especificação completa em `/api/auth/openapi.json`. Você pode jogar isso pra uma IA e pedir pra gerar os hooks do frontend:
+The `openAPI()` plugin generates a complete specification at `/api/auth/openapi.json`. You can feed this to an AI and ask it to generate frontend hooks:
 
 ```
-Gere hooks de autenticação para React baseado nesta spec OpenAPI:
+Generate authentication hooks for React based on this OpenAPI spec:
 
-[cola o JSON aqui]
+[paste the JSON here]
 
-Requisitos:
-- fetch nativo com credentials: 'include'
+Requirements:
+- Native fetch with credentials: 'include'
 - TypeScript
-- Hooks para: sign-in, sign-up, sign-out, get-session
-- Tratamento de erros
+- Hooks for: sign-in, sign-up, sign-out, get-session
+- Error handling
 ```
 
-Funciona surpreendentemente bem.
+It works surprisingly well.
 
 ---
 
-## Scripts úteis
+## Useful scripts
 
 ```json
 {
@@ -559,8 +559,8 @@ Funciona surpreendentemente bem.
     "cf-typegen": "wrangler types",
     "auth:generate": "ALCHEMY_STAGE=dev npx @better-auth/cli@latest generate --config src/lib/auth.ts --output src/db/authModels.ts -y",
     "db:generate": "drizzle-kit generate",
-    "db:migrate:dev": "wrangler d1 migrations apply seu-db --local",
-    "db:migrate:prod": "wrangler d1 migrations apply seu-db --remote",
+    "db:migrate:dev": "wrangler d1 migrations apply your-db --local",
+    "db:migrate:prod": "wrangler d1 migrations apply your-db --remote",
     "studio": "drizzle-kit studio"
   }
 }
@@ -568,63 +568,63 @@ Funciona surpreendentemente bem.
 
 ---
 
-## Fluxo de desenvolvimento
+## Development workflow
 
-### Setup inicial
+### Initial setup
 
 ```bash
-pnpm cf-typegen      # gera tipos do Cloudflare
-pnpm auth:generate   # gera schema do Better Auth
-pnpm db:generate     # gera migrations
-pnpm db:migrate:dev  # aplica migrations localmente
-pnpm dev             # roda o servidor
+pnpm cf-typegen      # generates Cloudflare types
+pnpm auth:generate   # generates Better Auth schema
+pnpm db:generate     # generates migrations
+pnpm db:migrate:dev  # applies migrations locally
+pnpm dev             # runs the server
 ```
 
-### Adicionando um plugin
+### Adding a plugin
 
 ```bash
-# 1. Adiciona o plugin em src/lib/auth.ts
+# 1. Add the plugin in src/lib/auth.ts
 
-# 2. Regenera o schema
+# 2. Regenerate the schema
 pnpm auth:generate
 
-# 3. Gera nova migration
+# 3. Generate new migration
 pnpm db:generate
 
-# 4. Aplica localmente
+# 4. Apply locally
 pnpm db:migrate:dev
 
-# 5. Em prod
+# 5. In prod
 pnpm db:migrate:prod
 ```
 
-> O `auth:generate` precisa rodar toda vez que você mexe em plugins. Ele lê sua config e gera os models correspondentes.
+> The `auth:generate` command needs to run every time you modify plugins. It reads your config and generates the corresponding models.
 
 ---
 
 ## Deploy
 
 ```bash
-pnpm db:migrate:prod  # migrations primeiro
-pnpm deploy           # depois o worker
+pnpm db:migrate:prod  # migrations first
+pnpm deploy           # then the worker
 ```
 
 ---
 
-## Por que essa stack?
+## Why this stack?
 
-- **Latência mínima**: tudo roda na edge, perto do usuário
-- **Custo zero pra começar**: D1 tem tier gratuito generoso
-- **Type-safety de ponta a ponta**: do banco ao frontend
-- **Modular**: você só adiciona o que precisa
-- **KV como cache**: reduz verificação de sessão de 1s pra 20ms
-- **Geo grátis**: Cloudflare já te dá isso em cada request
+- **Minimal latency**: everything runs at the edge, close to the user
+- **Zero cost to start**: D1 has a generous free tier
+- **End-to-end type safety**: from the database to the frontend
+- **Modular**: you only add what you need
+- **KV as cache**: reduces session verification from 1s to 20ms
+- **Free geo**: Cloudflare already gives you this on every request
 
 ---
 
 ## Links
 
-- [Template completo](https://github.com/gabszs/workers-template)
+- [Complete template](https://github.com/gabszs/workers-template)
 - [Better Auth docs](https://www.better-auth.com/)
 - [better-auth-cloudflare](https://github.com/zpg6/better-auth-cloudflare)
 - [Drizzle ORM](https://orm.drizzle.team/)
@@ -632,6 +632,6 @@ pnpm deploy           # depois o worker
 
 ---
 
-If you like the post, had any feedback or question, you can send me a message on [whatsapp](https://wa.me/5511947047830) or [email](mailto:gabrielcarvalho.workk@gmail.com).
+If you liked this post, have any feedback or questions, you can reach me on [WhatsApp](https://wa.me/5511947047830) or [email](mailto:gabrielcarvalho.workk@gmail.com).
 
 By [Gabriel Carvalho](https://www.linkedin.com/in/gabzsz/)
