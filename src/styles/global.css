@@ -13,11 +13,11 @@ html[data-theme="light"] {
 }
 
 html[data-theme="dark"] {
-  --background: #212737;
-  --foreground: #eaedf3;
-  --accent: #ff6b01;
-  --muted: #343f60;
-  --border: #ab4b08;
+  --background: #1e1e28; /* 30, 30, 40 - fundo escuro com toque de azul */
+  --foreground: #dcdcdc; /* 220, 220, 220 - cinza claro para legibilidade */
+  --accent: #ff5722; /* 255, 87, 34 - laranja vibrante */
+  --muted: #323c50; /* 50, 60, 80 - azul-escuro suave para cartões */
+  --border: #646478; /* 100, 100, 120 - cinza médio para bordas */
 }
 
 @theme inline {
