@@ -9,14 +9,19 @@ export const SITE: Site = {
   ogImage: "shanghai-street.jpg",
   lightAndDarkMode: true,
   postPerIndex: 4,
-  postPerPage: 3,
+  postPerPage: 4,
   scheduledPostMargin: 15 * 60 * 1000, // 15 minutes
   showArchives: true,
-};
-
-export const LOCALE = {
+  showBackButton: true, // show back button in post detail
+  editPost: {
+    enabled: true,
+    text: "Edit page",
+    url: "https://github.com/satnaing/astro-paper/edit/main/",
+  },
+  dynamicOgImage: true,
+  dir: "ltr", // "rtl" | "auto"
   lang: "en", // html lang code. Set this empty and default will be "en"
-  langTag: ["en-EN"], // BCP 47 Language Tags. Set this empty [] to use the environment default
+  timezone: "Asia/Bangkok", // Default global timezone (IANA format) https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 } as const;
 
 export const LOGO_IMAGE = {
