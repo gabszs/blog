@@ -7,7 +7,7 @@ featured: true
 tags:
   - typescript
   - cloudflare
-  - workers
+  - cloudflare-workers
   - authentication
   - better-auth
   - hono
@@ -314,7 +314,6 @@ There's a live example here: [template-hono-workers-api.gabszs.workers.dev/api/a
 ### admin()
 
 Adds user management: listing, banning, session impersonation, role management.
-
 **Added fields:**
 
 - `users.role`
@@ -322,22 +321,35 @@ Adds user management: listing, banning, session impersonation, role management.
 - `users.banReason`
 - `users.banExpires`
 - `sessions.impersonatedBy`
+![Opened auth admin endpoints](./admin-plugin-endpoints.png)
+*Admin plugin endpoints: listUsers, banUser, unbanUser, setRole, impersonateUser and stopImpersonating*
 
 ### phoneNumber()
 
-Adds `users.phoneNumber` and `users.phoneNumberVerified`. Enables login via SMS/WhatsApp.
+Adds `users.phoneNumber` and `users.phoneNumberVerified` at users table. Enables login via SMS/WhatsApp.
+![phoneNumber endpoints](./phone-number-endpoints.png)
+*Endpoints for sending and verifying codes via SMS/WhatsApp*
 
 ### emailOTP()
 
 Alternative to magic link. User receives a 6-digit code by email instead of a link.
+![emailOTP endpoints](./email-otp-endpoints.png)
+*Endpoints for sending and verifying 6-digit codes via email*
 
 ### withCloudflare() - this is the important one
 
 The [better-auth-cloudflare](https://github.com/zpg6/better-auth-cloudflare) package is what makes the Cloudflare integration worthwhile.
+![withCloudflare endpoints](./cloudfalre-plugin-endpoints.png)
+*Endpoints for KV, R2 and automatic geolocation integration*
 
 **KV as session cache:**
 
 This is the most impactful feature. Verifying sessions on D1 during cold start takes ~800ms-1s. With KV, it drops to ~12-20ms. The difference is massive in applications with lots of authenticated requests.
+![KV-Storage print](./kv-sessions-cache.png)
+*Cloudflare KV dashboard showing cached user sessions*
+
+![Cached get-session requests](./cached-requests.png)
+*Response time comparison: ~12-20ms with KV cache vs ~800ms-1s without cache*
 
 **R2 for uploads:**
 
@@ -355,6 +367,8 @@ Automatically adds:
 - `colo`
 - `latitude`
 - `longitude`
+![Geolation info fetched at fronend](./geolocation-example.png)
+*Session data with automatic geolocation: timezone, city, country, region and coordinates*
 
 You can see where your users are logging in from without doing anything.
 
