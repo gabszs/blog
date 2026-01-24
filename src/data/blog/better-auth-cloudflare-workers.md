@@ -57,11 +57,11 @@ The interesting part is that it works through **plugins**. Want admin? Add `admi
 First, the dependencies:
 
 ```bash
-pnpm create hono  # select cloudflare-workers
-pnpm add better-auth better-auth-cloudflare
-pnpm add drizzle-orm
-pnpm add -D drizzle-kit
-pnpm add resend  # for emails
+pnpm create hono  # select cloudflare-workers template
+pnpm add better-auth better-auth-cloudflare  # auth framework + CF bindings
+pnpm add drizzle-orm  # type-safe ORM
+pnpm add -D drizzle-kit  # migration CLI
+pnpm add resend  # email service
 ```
 
 ### Environment variables
@@ -108,6 +108,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineConfig } from "drizzle-kit";
 
+// Finds the local .sqlite file created by wrangler
 function getLocalD1DB() {
   try {
     const basePath = path.resolve(".wrangler");
@@ -129,6 +130,7 @@ export default defineConfig({
   dialect: "sqlite",
   schema: "./src/db/models.ts",
   out: "./src/db/migrations",
+  // prod: connects via D1 HTTP API | dev: uses local .sqlite file
   ...(process.env.ALCHEMY_STAGE === "prod"
     ? {
         driver: "d1-http",
@@ -160,19 +162,19 @@ import { drizzle } from "drizzle-orm/d1";
 import { models } from "../db/models";
 
 function createAuth(env: CloudflareBindings) {
+  // Initialize Drizzle with D1 binding
   const db = drizzle(env.D1, { schema: models });
 
   return betterAuth({
+    // Connect Better Auth to Drizzle/D1
     database: drizzleAdapter(db, {
       provider: "sqlite",
-      usePlural: true,
+      usePlural: true,  // tables: users, sessions (not user, session)
       schema: models,
     }),
-    emailAndPassword: {
-      enabled: true,
-    },
+    emailAndPassword: { enabled: true },  // enables /sign-in, /sign-up routes
     trustedOrigins: env.CORS_ORIGIN?.split(",") || ["http://localhost:3000"],
-    secret: env.BETTER_AUTH_SECRET,
+    secret: env.BETTER_AUTH_SECRET,  // used to sign tokens/cookies
     basePath: "/api/auth",
   });
 }
@@ -206,11 +208,12 @@ function createAuth(env: CloudflareBindings, cf?: IncomingRequestCfProperties) {
   const db = drizzle(env.D1, { schema: models });
 
   return betterAuth({
+    // withCloudflare spreads KV cache, R2 uploads, and geolocation config
     ...withCloudflare(
       {
-        autoDetectIpAddress: true,
-        geolocationTracking: true,
-        cf: cf || {},
+        autoDetectIpAddress: true,  // extracts IP from CF-Connecting-IP header
+        geolocationTracking: true,  // stores location data on each session
+        cf: cf || {},  // CF request properties (contains geo data)
         d1: {
           db,
           options: {
@@ -218,10 +221,10 @@ function createAuth(env: CloudflareBindings, cf?: IncomingRequestCfProperties) {
             debugLogs: true,
           },
         },
-        kv: env.KV,
+        kv: env.KV,  // session cache: reduces auth latency from 800ms to 20ms
         r2: {
-          bucket: env.R2,
-          maxFileSize: 2 * 1024 * 1024,
+          bucket: env.R2,  // per-user file uploads
+          maxFileSize: 2 * 1024 * 1024,  // 2MB limit
           allowedTypes: [".jpg", ".jpeg", ".png", ".gif"],
         },
       },
@@ -229,6 +232,7 @@ function createAuth(env: CloudflareBindings, cf?: IncomingRequestCfProperties) {
         emailAndPassword: {
           enabled: true,
           requireEmailVerification: true,
+          // called when user requests password reset
           sendResetPassword: async ({ user, url }) => {
             const resend = new Resend(env.RESEND_API_KEY);
             await resend.emails.send({
@@ -240,6 +244,7 @@ function createAuth(env: CloudflareBindings, cf?: IncomingRequestCfProperties) {
           },
         },
         emailVerification: {
+          // called on sign-up to verify email
           sendVerificationEmail: async ({ user, url }) => {
             const resend = new Resend(env.RESEND_API_KEY);
             await resend.emails.send({
@@ -249,14 +254,15 @@ function createAuth(env: CloudflareBindings, cf?: IncomingRequestCfProperties) {
               html: `<p>Click <a href="${url}">here</a> to verify your email.</p>`,
             });
           },
-          sendOnSignUp: true,
+          sendOnSignUp: true,  // auto-send verification on registration
           autoSignInAfterVerification: true,
         },
         plugins: [
-          openAPI(),
-          admin(),
-          phoneNumber(),
+          openAPI(),  // generates /api/auth/reference docs
+          admin(),  // user management: ban, roles, impersonation
+          phoneNumber(),  // SMS/WhatsApp login
           emailOTP({
+            // sends 6-digit code instead of magic link
             async sendVerificationOTP({ email, otp, type }) {
               if (type === "sign-in") {
                 const resend = new Resend(env.RESEND_API_KEY);
@@ -270,6 +276,7 @@ function createAuth(env: CloudflareBindings, cf?: IncomingRequestCfProperties) {
             },
           }),
         ],
+        // OAuth providers - credentials from env vars
         socialProviders: {
           google: {
             clientId: env.GOOGLE_CLIENT_ID || "",
@@ -475,14 +482,16 @@ type AppBindings = {
 
 const app = new Hono<AppBindings>();
 
+// CORS with credentials for cookie-based auth
 app.use(
   "/*",
   cors({
     origin: (origin, c) => c.env.CORS_ORIGIN?.split(",") || ["http://localhost:3000"],
-    credentials: true,
+    credentials: true,  // required for cookies to work cross-origin
   })
 );
 
+// Inject auth instance with CF request metadata (for geolocation)
 app.use("*", async (c, next) => {
   if (c.req.path.startsWith("/api/auth")) {
     const auth = createAuth(c.env, (c.req.raw as any).cf || {});
@@ -491,6 +500,7 @@ app.use("*", async (c, next) => {
   await next();
 });
 
+// Let Better Auth handle all /api/auth/* routes
 app.all("/api/auth/*", async (c) => {
   const auth = c.get("auth");
   return auth.handler(c.req.raw);
@@ -510,13 +520,14 @@ import { getAuthInstance } from "./auth";
 
 export const authMiddleware = createMiddleware(async (c, next) => {
   const auth = getAuthInstance(c.env);
+  // Validates session from cookies/headers (uses KV cache if configured)
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
   if (!session?.user) {
     return c.text("Unauthorized", 401);
   }
 
-  c.set("userId", session.user.id);
+  c.set("userId", session.user.id);  // makes userId available in handlers
   await next();
 });
 ```
@@ -529,14 +540,12 @@ import { authMiddleware } from "./lib/middleware";
 
 const app = new Hono();
 
-// Public routes
-app.get("/health", (c) => c.json({ status: "ok" }));
+app.get("/health", (c) => c.json({ status: "ok" }));  // public
 
-// Protected routes
-app.use("/api/*", authMiddleware);
+app.use("/v1/*", authMiddleware);  // protect all /v1/* routes
 
-app.get("/api/me", (c) => {
-  const userId = c.get("userId");
+app.get("/v1/me", (c) => {
+  const userId = c.get("userId");  // set by authMiddleware
   return c.json({ userId });
 });
 ```
@@ -587,11 +596,11 @@ It works surprisingly well.
 ### Initial setup
 
 ```bash
-pnpm cf-typegen      # generates Cloudflare types
-pnpm auth:generate   # generates Better Auth schema
-pnpm db:generate     # generates migrations
-pnpm db:migrate:dev  # applies migrations locally
-pnpm dev             # runs the server
+pnpm cf-typegen      # 1. generate CF bindings types
+pnpm auth:generate   # 2. generate Drizzle schema from plugins
+pnpm db:generate     # 3. create SQL migration files
+pnpm db:migrate:dev  # 4. apply migrations to local D1
+pnpm dev             # 5. start dev server
 ```
 
 ### Adding a plugin
