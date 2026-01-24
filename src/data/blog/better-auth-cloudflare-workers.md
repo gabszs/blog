@@ -321,34 +321,34 @@ Adds user management: listing, banning, session impersonation, role management.
 - `users.banReason`
 - `users.banExpires`
 - `sessions.impersonatedBy`
-![Opened auth admin endpoints](./admin-plugin-endpoints.png)
+![Opened auth admin endpoints](/posts/better-auth-cloudflare-workers/admin-plugin-endpoints.png)
 *Admin plugin endpoints: listUsers, banUser, unbanUser, setRole, impersonateUser and stopImpersonating*
 
 ### phoneNumber()
 
 Adds `users.phoneNumber` and `users.phoneNumberVerified` at users table. Enables login via SMS/WhatsApp.
-![phoneNumber endpoints](./phone-number-endpoints.png)
+![phoneNumber endpoints](/posts/better-auth-cloudflare-workers/phone-number-endpoints.png)
 *Endpoints for sending and verifying codes via SMS/WhatsApp*
 
 ### emailOTP()
 
 Alternative to magic link. User receives a 6-digit code by email instead of a link.
-![emailOTP endpoints](./email-otp-endpoints.png)
+![emailOTP endpoints](/posts/better-auth-cloudflare-workers/email-otp-endpoints.png)
 *Endpoints for sending and verifying 6-digit codes via email*
 
 ### withCloudflare() - this is the important one
 
 The [better-auth-cloudflare](https://github.com/zpg6/better-auth-cloudflare) package is what makes the Cloudflare integration worthwhile.
-![withCloudflare endpoints](./cloudfalre-plugin-endpoints.png)
+![withCloudflare endpoints](/posts/better-auth-cloudflare-workers/cloudfalre-plugin-endpoints.png)
 *Endpoints for KV, R2 and automatic geolocation integration*
 
 **KV as session cache:**
 
 This is the most impactful feature. Verifying sessions on D1 during cold start takes ~800ms-1s. With KV, it drops to ~12-20ms. The difference is massive in applications with lots of authenticated requests.
-![KV-Storage print](./kv-sessions-cache.png)
+![KV-Storage print](/posts/better-auth-cloudflare-workers/kv-sessions-cache.png)
 *Cloudflare KV dashboard showing cached user sessions*
 
-![Cached get-session requests](./cached-requests.png)
+![Cached get-session requests](/posts/better-auth-cloudflare-workers/cached-requests.png)
 *Response time comparison: ~12-20ms with KV cache vs ~800ms-1s without cache*
 
 **R2 for uploads:**
@@ -367,7 +367,7 @@ Automatically adds:
 - `colo`
 - `latitude`
 - `longitude`
-![Geolation info fetched at fronend](./geolocation-example.png)
+![Geolation info fetched at fronend](/posts/better-auth-cloudflare-workers/geolocation-example.png)
 *Session data with automatic geolocation: timezone, city, country, region and coordinates*
 
 You can see where your users are logging in from without doing anything.
