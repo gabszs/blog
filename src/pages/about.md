@@ -10,21 +10,6 @@ I work at [delfia](https://www.linkedin.com/company/delfia/life/diaadiadacurador
 
 As you can see, I'm a open-telemetry nerd (grafana and hyperDX) and cloudflare workers enthusiast (for real, this thing is the future of serveless computation)
 
-Here I talk about topics such as:
-
-- Homelabbing
-- Advanced Python features and tips, such as asyncio and async programming
-- DevOps automation (I’m also a huge fan of GitOps and CI/CD pipelines)
-- Web APIs (REST, for example)
-- Message Queues (RabbitMQ and cloudfalre QUEUS)
-- Containers and Kubernetes
-- Professional tips
-- Communication and life hacks
-
-I currently work as an software engineer at Huawei, where I've developed internal tools and automations for processes like payment systems and employee management, saving over $50K through efficient solutions.
-
-I'm dedicated to continuous improvement, effective communication (with a focus on NLP), and aligning with company values. I'm always looking to expand my skills and contribute to innovative projects.
-
 ## Tech Stack
 
 Here are the main technologies used in my development stack:
