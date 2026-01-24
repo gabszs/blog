@@ -86,6 +86,58 @@ CORS_ORIGIN=http://localhost:3000,http://localhost:3001
 
 The `BETTER_AUTH_SECRET` is used to sign tokens and cookies. **Never commit this to the repo.**
 
+> `.dev.vars` overrides `wrangler.jsonc` vars in local development. Use it for secrets you don't want in version control.
+
+### wrangler.jsonc
+
+This is where you declare your Cloudflare bindings (D1, KV, R2) and production environment variables:
+
+```jsonc
+{
+  "name": "my-auth-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],  // required for some dependencies
+  "vars": {
+    // production env vars (non-secrets)
+    "CORS_ORIGIN": "https://myapp.com,https://www.myapp.com",
+    "BETTER_AUTH_URL": "https://api.myapp.com/api/auth"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "KV",  // accessible as env.KV in code
+      "id": "your-kv-namespace-id",
+      "preview_id": "your-kv-namespace-id"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",  // accessible as env.R2 in code
+      "bucket_name": "my-auth-uploads",
+      "preview_bucket_name": "my-auth-uploads"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "D1",  // accessible as env.D1 in code
+      "database_id": "your-d1-database-id",
+      "database_name": "my-auth-db",
+      // IMPORTANT: tells wrangler where to find migration files
+      "migrations_dir": "src/db/migrations",
+      "preview_database_id": "your-d1-database-id"
+    }
+  ]
+}
+```
+
+To create the bindings on Cloudflare:
+
+```bash
+wrangler d1 create my-auth-db        # creates D1, outputs database_id
+wrangler kv namespace create KV       # creates KV, outputs namespace id
+wrangler r2 bucket create my-auth-uploads  # creates R2 bucket
+```
+
 ### Cloudflare types
 
 Run `pnpm wrangler types` to generate binding types. Your `tsconfig.json` needs to include:
