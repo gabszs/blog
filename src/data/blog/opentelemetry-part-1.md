@@ -1,25 +1,22 @@
 ---
 author: Gabriel Carvalho
 pubDatetime: 2025-01-24T18:30:00.000Z
-title: "OpenTelemetry part 1: Instrumenting Python (With profiles)"
+title: "Open-Telemetry part 1: Instrumenting Python (With profiles)"
 slug: "opentelemetry-python-fastapi-part-1"
 featured: true
 tags:
   - python
   - fastapi
   - opentelemetry
-  - otel
+  - open-telemetry
   - observability
   - instrumentation
-  - pyroscope
   - profiles
   - traces
   - metrics
   - logs
-  - asyncpg
-  - aioredis
 description: "Complete guide to instrumenting Python FastAPI applications with OpenTelemetry. Automatic instrumentation of FastAPI, HTTP clients, asyncpg, and Redis. Plus continuous profiling with Pyroscope that links traces directly to CPU/memory profiles."
-ogImage: "/posts/opentelemetry-part-1/og-image.webp"
+ogImage: src/assets/posts/opentelemetry-part-1/og-image.webp
 ---
 
 Instrumenting Python apps with OpenTelemetry (and profiles) has been one of those “why didn’t I do this sooner?” upgrades for me. If you’re running FastAPI in production and mostly relying on logs, you’re basically debugging in the dark. Logs tell you that something broke. Traces show you the path. Metrics show you trends. But profiles? Profiles show you exactly where your CPU went to die.
@@ -117,8 +114,14 @@ If any of these libraries are installed in your environment, their corresponding
 ---
 
 ## Dependencies and Installation
+**Run the following command to install the appropriate packages:**
+```
+poetry add opentelemetry-distro opentelemetry-exporter-otlp pyroscope-otel opentelemetry-instrumentation-system-metrics
+```
 
-### Add to `pyproject.toml`
+OR
+
+**Add to `pyproject.toml`**
 
 ```toml
 [tool.poetry.dependencies]
@@ -161,7 +164,6 @@ opentelemetry-bootstrap -a install
 
 This command:
 - Automatically installs latest `opentelemetry-instrumentation-*` packages
-- Creates a `.opentelemetry_installed_packages.pth` file that tells Python which instrumentations to load
 
 > ⚠️ **Alert:** Bootstrap installs **all available instrumentations** for libraries it detects in your environment. If you have httpx, Redis, asyncpg, SQLAlchemy, etc., bootstrap will install instrumentation for all of them automatically. This can increase your Python package count. To disable specific instrumentations at runtime, use `OTEL_PYTHON_DISABLED_INSTRUMENTATIONS` (see Environment Configuration).
 
@@ -412,7 +414,7 @@ service.version=1.0.0,\
 service.build.git_hash=abc123def456,\
 service.build.git_branch=main,\
 service.owner.name=backend-team,\
-service.owner.contact=backend@company.com"
+service.owner.contact=backend @ company.com"
 ```
 
 ### Attribute Reference
@@ -428,7 +430,7 @@ service.owner.contact=backend@company.com"
 | `service.build.deployment.user` | `ci-bot` | Who triggered the deployment. Useful for incident correlation. |
 | `service.build.deployment.trigger` | `github-actions` | How deployment was triggered. Helps identify bad deploys. |
 | `service.owner.name` | `Backend Team` | Team responsible for the service. Important for on-call routing. |
-| `service.owner.contact` | `backend@company.com` | Primary contact email. Used in alerting. |
+| `service.owner.contact` | `backend @ company.com` | Primary contact email. Used in alerting. |
 | `service.owner.discord` | `#backend-alerts` | Discord channel for alerts. Direct escalation path. |
 
 ### Docker/Deployment Integration
