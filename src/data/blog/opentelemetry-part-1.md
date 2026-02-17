@@ -49,11 +49,11 @@ If you want to skip straight to the code, there's a [ready-made template here](h
 
 ## What Gets Instrumented Automatically
 
-When you run your application with `opentelemetry-instrument`, here's what happens without a single line of code change:
+When you run your application/api with `opentelemetry-instrument`, here's what happens without a single line of code change:
 
 > 💡 **Note:** Automatic instrumentation is just the foundation. You can always use the OpenTelemetry SDK directly to customize, extend, or manually instrument specific code paths exactly as you would with manual instrumentation. Think of this as the baseline; you can build on top of it.
 
-### FastAPI/ASGI Handler Instrumentation
+### FastAPI/ASGI Handler Instrumentation (also other frameworks such as flask, django and celery)
 
 Every incoming HTTP request automatically generates:
 - Request span with method, path, status code
@@ -150,6 +150,8 @@ pyroscope-otel = ">=0.4.1,<0.5.0"
 
 - **`pyroscope-otel`** — Links OpenTelemetry traces to continuous profiling data. Each trace gets a `pyroscope.profile.id` attribute that can be used to jump from a trace to the exact CPU/memory profile captured during that transaction. Optional but highly recommended.
 
+![profile view at grafana](/posts/open-telemetry-part-1/pyroscope-correlation.png)
+
 ---
 
 ## OpenTelemetry Bootstrap Flow
@@ -166,6 +168,8 @@ This command:
 - Automatically installs latest `opentelemetry-instrumentation-*` packages
 
 > ⚠️ **Alert:** Bootstrap installs **all available instrumentations** for libraries it detects in your environment. If you have httpx, Redis, asyncpg, SQLAlchemy, etc., bootstrap will install instrumentation for all of them automatically. This can increase your Python package count. To disable specific instrumentations at runtime, use `OTEL_PYTHON_DISABLED_INSTRUMENTATIONS` (see Environment Configuration).
+
+![bootstrap install view](/posts/open-telemetry-part-1/bootstrap-install.png)
 
 **Libraries auto-instrumented by bootstrap (if installed in your project):**
 - `opentelemetry-instrumentation-asgi` (for FastAPI/Starlette)
@@ -772,6 +776,46 @@ OTEL_EXPORTER_OTLP_INSECURE="true"
 ```bash
 OTEL_EXPORTER_OTLP_INSECURE="false"
 # (or omit, as false is default)
+```
+
+### Multiple Workers with Pre-fork Servers
+
+**Problem:** Running Gunicorn with multiple workers breaks metric export because forking creates inconsistencies in background threads and locks used by OpenTelemetry's `PeriodicExportingMetricReader`.
+
+**Symptoms:**
+- Traces export fine, but metrics stop appearing
+- Deadlocks in child processes after fork
+- Metrics work with single worker, fail with `--workers 4`
+
+**Solution: Use Gunicorn + UvicornWorker**
+
+Instead of:
+```bash
+# ❌ BROKEN: Metrics won't export with multiple workers
+gunicorn myapp.main:app --workers 4
+```
+
+Use:
+```bash
+# ✅ CORRECT: UvicornWorker preserves background threads
+opentelemetry-instrument gunicorn \
+  --workers 4 \
+  --worker-class uvicorn.workers.UvicornWorker \
+  --bind 0.0.0.0:8000 \
+  myapp.main:app
+```
+
+The `UvicornWorker` class is specifically designed to handle forks while preserving background processes and threads. This ensures:
+- Traces export correctly ✓
+- Metrics export correctly ✓
+- Logs export correctly ✓
+- No deadlocks ✓
+
+**Why this works:** UvicornWorker manages the async event loop per worker, avoiding the thread/lock inconsistencies that occur with standard Gunicorn workers.
+
+**Alternative:** If you don't need multiple workers, stick with single-worker Uvicorn:
+```bash
+opentelemetry-instrument uvicorn --host 0.0.0.0 --port 8000 app.main:app
 ```
 
 ---
