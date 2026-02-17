@@ -31,31 +31,6 @@ If you want to skip straight to the code, there's a [ready-made template here](h
 
 ---
 
-## Table of Contents
-
-1. [What Gets Instrumented Automatically](#what-gets-instrumented-automatically)
-2. [The Minimal Stack](#the-minimal-stack)
-3. [Dependencies and Installation](#dependencies-and-installation)
-4. [OpenTelemetry Bootstrap Flow](#opentelemetry-bootstrap-flow)
-5. [Environment Configuration](#environment-configuration)
-6. [Prometheus Integration](#prometheus-integration-alternative-metrics-export)
-   - [Push vs. Pull Metrics](#push-vs-pull-metrics)
-   - [Recommendation: Use Default + System Metrics](#recommendation-use-default--system-metrics)
-7. [Understanding System Metrics](#understanding-system-metrics)
-8. [Resource Attributes for Telemetry Enrichment](#resource-attributes-for-telemetry-enrichment)
-9. [Pyroscope: Linking Traces to Profiles](#pyroscope-linking-traces-to-profiles)
-10. [Docker and Deployment](#docker-and-deployment)
-11. [Troubleshooting](#troubleshooting)
-    - [Traces Not Appearing in Backend](#traces-not-appearing-in-backend)
-    - [Pyroscope Profile ID Missing from Spans](#pyroscope-profile-id-missing-from-spans)
-    - [libgc Not Found Error](#libgc-not-found-error-alpine--pyroscope)
-    - [System Metrics Not Appearing](#system-metrics-not-appearing)
-    - [Bootstrap Installing Too Many Packages](#bootstrap-installing-too-many-packages)
-    - [Certificate Validation Errors](#certificate-validation-errors-https)
-    - [Multiple Workers with Pre-fork Servers](#multiple-workers-with-pre-fork-servers)
-
----
-
 ## What Gets Instrumented Automatically
 
 When you run your application/api with `opentelemetry-instrument`, here's what happens without a single line of code change:
