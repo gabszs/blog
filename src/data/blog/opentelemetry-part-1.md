@@ -16,7 +16,7 @@ tags:
   - metrics
   - logs
 description: "Complete guide to instrumenting Python FastAPI applications with OpenTelemetry. Automatic instrumentation of FastAPI, HTTP clients, asyncpg, and Redis. Plus continuous profiling with Pyroscope that links traces directly to CPU/memory profiles."
-ogImage: src/assets/posts/opentelemetry-part-1/og-image.webp
+ogImage: "/posts/opentelemetry-part-1/og-image.jpg"
 ---
 
 Instrumenting Python apps with OpenTelemetry (and profiles) has been one of those “why didn’t I do this sooner?” upgrades for me. If you’re running FastAPI in production and mostly relying on logs, you’re basically debugging in the dark. Logs tell you that something broke. Traces show you the path. Metrics show you trends. But profiles? Profiles show you exactly where your CPU went to die.
