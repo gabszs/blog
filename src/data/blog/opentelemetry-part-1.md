@@ -38,12 +38,21 @@ If you want to skip straight to the code, there's a [ready-made template here](h
 3. [Dependencies and Installation](#dependencies-and-installation)
 4. [OpenTelemetry Bootstrap Flow](#opentelemetry-bootstrap-flow)
 5. [Environment Configuration](#environment-configuration)
-6. [Prometheus Integration (Alternative Metrics Export)](#prometheus-integration-alternative-metrics-export)
+6. [Prometheus Integration](#prometheus-integration-alternative-metrics-export)
+   - [Push vs. Pull Metrics](#push-vs-pull-metrics)
+   - [Recommendation: Use Default + System Metrics](#recommendation-use-default--system-metrics)
 7. [Understanding System Metrics](#understanding-system-metrics)
 8. [Resource Attributes for Telemetry Enrichment](#resource-attributes-for-telemetry-enrichment)
 9. [Pyroscope: Linking Traces to Profiles](#pyroscope-linking-traces-to-profiles)
 10. [Docker and Deployment](#docker-and-deployment)
 11. [Troubleshooting](#troubleshooting)
+    - [Traces Not Appearing in Backend](#traces-not-appearing-in-backend)
+    - [Pyroscope Profile ID Missing from Spans](#pyroscope-profile-id-missing-from-spans)
+    - [libgc Not Found Error](#libgc-not-found-error-alpine--pyroscope)
+    - [System Metrics Not Appearing](#system-metrics-not-appearing)
+    - [Bootstrap Installing Too Many Packages](#bootstrap-installing-too-many-packages)
+    - [Certificate Validation Errors](#certificate-validation-errors-https)
+    - [Multiple Workers with Pre-fork Servers](#multiple-workers-with-pre-fork-servers)
 
 ---
 
@@ -149,8 +158,6 @@ pyroscope-otel = ">=0.4.1,<0.5.0"
 - **`opentelemetry-instrumentation-system-metrics`** — **Must be explicitly installed.** The bootstrap command doesn't auto-discover this package. It collects system-level CPU, memory, disk, and network metrics and adds them as attributes to traces.
 
 - **`pyroscope-otel`** — Links OpenTelemetry traces to continuous profiling data. Each trace gets a `pyroscope.profile.id` attribute that can be used to jump from a trace to the exact CPU/memory profile captured during that transaction. Optional but highly recommended.
-
-![profile view at grafana](/posts/open-telemetry-part-1/pyroscope-correlation.png)
 
 ---
 
@@ -387,14 +394,8 @@ With `opentelemetry-instrumentation-system-metrics` explicitly installed, you ge
 
 These become attributes on the root span, so when you query "why is this trace slow?", you can immediately see: "CPU was at 85%, memory at 2GB".
 
-**Example trace with system metrics:**
-```
-POST /api/users - 850ms
-├─ system.cpu.usage = 0.75 (75%)
-├─ system.memory.usage = 2147483648 (2GB)
-├─ system.disk.io.bytes_written = 524288 (512KB)
-└─ asyncpg query - 200ms
-```
+![metrics view at grafana](/posts/open-telemetry-part-1/metrics-view.png)
+
 
 > 📋 **Complete List:** For the full list of available system metrics and their definitions, see [otel-metrics-list.md](https://github.com/gabszs/auth-fastapi/blob/master/otel-metrics-list.md) in the template repository.
 
@@ -435,7 +436,10 @@ service.owner.contact=backend @ company.com"
 | `service.build.deployment.trigger` | `github-actions` | How deployment was triggered. Helps identify bad deploys. |
 | `service.owner.name` | `Backend Team` | Team responsible for the service. Important for on-call routing. |
 | `service.owner.contact` | `backend @ company.com` | Primary contact email. Used in alerting. |
-| `service.owner.discord` | `#backend-alerts` | Discord channel for alerts. Direct escalation path. |
+
+![resource-metrics view at the trace](/posts/open-telemetry-part-1/resource-metrics.png)
+
+
 
 ### Docker/Deployment Integration
 
@@ -508,7 +512,7 @@ With Pyroscope + OpenTelemetry, **each trace automatically gets a link to the pr
 
 When you install and configure `pyroscope-otel`, the `PyroscopeSpanProcessor` does this:
 
-1. **Captures profiles continuously** at 100Hz (100 samples per second) across your entire application
+1. **Captures profiles continuously** across your entire application
 2. **At trace creation time**, the processor attaches the `pyroscope.profile.id` attribute to the **root span** of each trace (not individual spans — the entire transaction)
 3. **The profile ID** is a reference to the time window when that trace was executing
 4. **In Grafana Tempo** (or compatible observability platform), you see a "View Profile" button that jumps directly to the profile segment
@@ -521,12 +525,10 @@ When you install and configure `pyroscope-otel`, the `PyroscopeSpanProcessor` do
   "service.name": "my-fastapi-service",
   "http.route": "/api/expensive-operation",
   "pyroscope.profile.id": "cpu:my-fastapi-service{}2025-01-24T10:30:00Z",
-  "duration_ms": 1500,
-  "system.cpu.usage": 0.95
 }
 ```
 
-The `pyroscope.profile.id` links this entire trace execution to the CPU profile captured during those 1500ms.
+![profile view at grafana](/posts/open-telemetry-part-1/pyroscope-correlation.png)
 
 ### Initialization
 
