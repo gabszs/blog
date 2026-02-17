@@ -1,6 +1,6 @@
 ---
 author: Gabriel Carvalho
-pubDatetime: 2025-01-24T18:30:00.000Z
+pubDatetime: 2026-02-17T22:00:00.000Z
 title: "Open-Telemetry part 1: Instrumenting Python (With profiles)"
 slug: "opentelemetry-python-fastapi-part-1"
 featured: true
