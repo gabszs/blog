@@ -25,7 +25,7 @@ The best part is how much you get for free. With OpenTelemetry, FastAPI, HTTP cl
 
 This post is about setting that up: instrumenting a Python app with OpenTelemetry and wiring in profiling so traces and CPU data live together. Once you’ve debugged performance this way, going back to logs-only feels prehistoric.
 
-If you want to skip straight to the code, there's a [ready-made template here](https://github.com/gabszs/auth-fastapi/).
+> If you want to skip straight to the code, there's a [ready-made template here](https://github.com/gabszs/auth-fastapi/).
 
 ![tempo trace view at grafana](/posts/open-telemetry-part-1/complete-trace.png)
 
