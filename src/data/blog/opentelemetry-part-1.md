@@ -29,7 +29,7 @@ If you want to skip straight to the code, there's a [ready-made template here](h
 
 ![tempo trace view at grafana](/posts/open-telemetry-part-1/complete-trace.png)
 
----
+## Table of contents
 
 ## What Gets Instrumented Automatically
 
