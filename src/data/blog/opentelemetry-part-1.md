@@ -23,12 +23,10 @@ Instrumenting Python apps with OpenTelemetry (and profiles) has been one of thos
 
 The best part is how much you get for free. With OpenTelemetry, FastAPI, HTTP clients, async DB drivers, Redis — all of it can be auto-instrumented. You add a few dependencies, flip a couple configs, and suddenly you have traces and metrics flowing without rewriting your whole codebase.
 
-Then you plug in Pyroscope and things level up. Now when a request is slow, you don’t just see that it took 900ms — you click into the trace and jump straight to the profile. There’s the call stack. There’s the hot function. No guessing. No reproducing locally for an hour.
-
 This post is about setting that up: instrumenting a Python app with OpenTelemetry and wiring in profiling so traces and CPU data live together. Once you’ve debugged performance this way, going back to logs-only feels prehistoric.
 
 If you want to skip straight to the code, there's a [ready-made template here](https://github.com/gabszs/auth-fastapi/).
-
+![tempo trace view at grafana](/posts/open-telemetry-part-1/complete-trace.png)
 ---
 
 ## Table of Contents
