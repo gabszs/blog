@@ -28,6 +28,7 @@ This post is about setting that up: instrumenting a Python app with OpenTelemetr
 If you want to skip straight to the code, there's a [ready-made template here](https://github.com/gabszs/auth-fastapi/).
 
 ![tempo trace view at grafana](/posts/open-telemetry-part-1/complete-trace.png)
+
 ---
 
 ## Table of Contents
