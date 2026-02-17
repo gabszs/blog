@@ -16,6 +16,7 @@ tags:
   - traces
   - metrics
   - logs
+ogImage: "/posts/opentelemetry-part-1/og-image.webp"
 description: "Complete guide to instrumenting Python FastAPI applications with OpenTelemetry. Automatic instrumentation of FastAPI, HTTP clients, asyncpg, and Redis. Plus continuous profiling with Pyroscope that links traces directly to CPU/memory profiles."
 ---
 
@@ -157,8 +158,7 @@ opentelemetry-bootstrap -a install
 ```
 
 This command:
-- Scans your virtual environment for known libraries (FastAPI, asyncpg, aioredis, httpx, requests, etc.)
-- Automatically installs corresponding `opentelemetry-instrumentation-*` packages
+- Automatically installs latest `opentelemetry-instrumentation-*` packages
 - Creates a `.opentelemetry_installed_packages.pth` file that tells Python which instrumentations to load
 
 > ⚠️ **Alert:** Bootstrap installs **all available instrumentations** for libraries it detects in your environment. If you have httpx, Redis, asyncpg, SQLAlchemy, etc., bootstrap will install instrumentation for all of them automatically. This can increase your Python package count. To disable specific instrumentations at runtime, use `OTEL_PYTHON_DISABLED_INSTRUMENTATIONS` (see Environment Configuration).
@@ -610,11 +610,11 @@ CMD ["sh", "-c", "opentelemetry-instrument uvicorn --proxy-headers --host 0.0.0.
 
 ### Image Size Comparison
 
-**With Pyroscope (Wolfi base):** ~280MB
+**With Pyroscope (Wolfi base):** ~240MB
 - Includes `libgc` (required by Pyroscope for garbage collection profiling)
 - All OpenTelemetry instrumentation packages
 
-**Without Pyroscope (Alpine base):** ~150MB
+**Without Pyroscope (Alpine base):** ~180MB
 - Lightweight base image
 - Still includes full OpenTelemetry instrumentation
 - Pyroscope won't work on Alpine (missing `libgc`)
